@@ -1,0 +1,36 @@
+# Gradle files
+.gradle/
+build/
+
+# Local configuration
+local.properties
+
+# Log files
+*.log
+
+# Android Studio navigation editor temp files
+.navigation/
+
+# IntelliJ IDEA / Android Studio project files
+*.iml
+.idea/
+*.ipr
+*.iws
+
+# Keystore files (если не хотите хранить ключи в репозитории)
+*.jks
+*.keystore
+
+# Generated files
+captures/
+output.json
+
+# External native build
+.externalNativeBuild/
+
+# Google Services (если не хотите хранить конфиденциальные ключи)
+google-services.json
+
+# Misc
+.DS_Store
+Thumbs.db
