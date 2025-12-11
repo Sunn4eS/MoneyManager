@@ -1,6 +1,6 @@
 package com.app.moneymanager.domain.model
 
-import java.sql.Date
+import java.util.Date
 
 enum class TransactionType {
     INCOME,

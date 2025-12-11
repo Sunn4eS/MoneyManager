@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 import com.app.moneymanager.domain.model.Category
 import com.app.moneymanager.domain.model.Transaction
 import com.app.moneymanager.domain.model.TransactionType
-import java.sql.Date
+import java.util.Date
 
 @Entity(tableName = "categories")
 data class CategoryEntity(

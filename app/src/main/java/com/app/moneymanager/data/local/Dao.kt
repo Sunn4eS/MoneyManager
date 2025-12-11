@@ -27,6 +27,6 @@ interface TransactionDao {
 
     @Transaction
     @Query("SELECT * FROM transactions ORDER BY date DESC")
-    fun getTransactionsWithCategories(): Flow<List<TransactionEntity>>
+    fun getTransactionsWithCategories(): Flow<List<TransactionWithCategory>>
 
 }

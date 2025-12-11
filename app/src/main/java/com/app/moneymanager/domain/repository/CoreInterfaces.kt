@@ -12,7 +12,7 @@ interface TransactionRepository {
 
 interface CategoryRepository {
     fun getAllCategories(): Flow<List<Category>>
-    suspend fun getCategoryById(categoryId: Long)
+    suspend fun getCategoryById(categoryId: Long): Category?
     suspend fun saveCategory(category: Category)
     suspend fun deleteCategory(categoryId: Long)
 }
