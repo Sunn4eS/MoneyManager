@@ -1,11 +1,8 @@
-package com.app.moneymanager.data.local
+package com.app.moneymanager.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
-import com.app.moneymanager.domain.model.Category
-import com.app.moneymanager.domain.model.Transaction
-import com.app.moneymanager.domain.model.TransactionType
 import java.util.Date
 
 @Entity(tableName = "categories")

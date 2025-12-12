@@ -1,7 +1,9 @@
-package com.app.moneymanager.data.local
+package com.app.moneymanager.data.local.model
 
 import androidx.room.Embedded
 import androidx.room.Relation
+import com.app.moneymanager.data.local.entity.CategoryEntity
+import com.app.moneymanager.data.local.entity.TransactionEntity
 
 data class TransactionWithCategory(
     @Embedded

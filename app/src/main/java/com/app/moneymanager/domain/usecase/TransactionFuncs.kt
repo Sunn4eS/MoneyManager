@@ -42,3 +42,11 @@ class CalculateBalanceUseCase @Inject constructor(
         }
     }
 }
+
+class DeleteTransactionUseCase @Inject constructor(
+    private val repository: TransactionRepository
+) {
+    suspend operator fun invoke(transactionId: Long) {
+        repository.deleteTransaction(transactionId)
+    }
+}

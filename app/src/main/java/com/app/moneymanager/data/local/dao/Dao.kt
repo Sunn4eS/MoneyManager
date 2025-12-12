@@ -1,10 +1,13 @@
-package com.app.moneymanager.data.local
+package com.app.moneymanager.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import com.app.moneymanager.data.local.entity.CategoryEntity
+import com.app.moneymanager.data.local.entity.TransactionEntity
+import com.app.moneymanager.data.local.model.TransactionWithCategory
 import kotlinx.coroutines.flow.Flow
 
 @Dao

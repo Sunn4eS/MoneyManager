@@ -3,6 +3,11 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
+    kotlin("kapt")
+    alias(libs.plugins.hilt)
+
+
+
 }
 
 android {
@@ -60,7 +65,7 @@ dependencies {
 
     // Dependency Injection (Hilt)
     implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
+    kapt(libs.hilt.compiler)
 
     // Hilt
     implementation(libs.androidx.hilt.navigation.compose)
@@ -70,11 +75,14 @@ dependencies {
     // Database(Room)
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
+
     // Room с поддержкой Coroutines Flow
     implementation(libs.androidx.room.ktx)
 
     // --- Coroutines ---
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
+
+    implementation(libs.androidx.work.runtime.ktx)
 
 }

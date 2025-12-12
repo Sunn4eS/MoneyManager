@@ -1,11 +1,13 @@
-package com.app.moneymanager.data.local
+package com.app.moneymanager.data.repository
 
+import com.app.moneymanager.data.local.dao.TransactionDao
 import com.app.moneymanager.domain.model.Transaction
 import com.app.moneymanager.domain.repository.TransactionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
-import com.app.moneymanager.data.local.toDomain
+import com.app.moneymanager.data.local.mapper.toDomain
+import com.app.moneymanager.data.local.mapper.toEntity
 import com.app.moneymanager.domain.model.Category
 import com.app.moneymanager.domain.repository.CategoryRepository
 
