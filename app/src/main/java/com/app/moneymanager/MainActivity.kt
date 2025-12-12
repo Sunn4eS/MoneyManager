@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.app.moneymanager.ui.navigation.AppNavHost
+import com.app.moneymanager.ui.navigation.BottomNavigationBar
 import com.app.moneymanager.ui.theme.MoneyManagerTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -30,7 +31,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MoneyManagerApp()
+                    MainScreen()
                 }
             }
         }
@@ -41,4 +42,18 @@ class MainActivity : ComponentActivity() {
 fun MoneyManagerApp() {
     val navController = rememberNavController()
     AppNavHost(navController = navController)
+}
+@Composable
+fun MainScreen(){
+    val navController = rememberNavController()
+    Scaffold(
+        bottomBar = {
+            BottomNavigationBar(navController = navController)
+        }
+    ) {
+        innerPadding -> AppNavHost(
+            navController = navController,
+            modifier = Modifier.padding(innerPadding)
+        )
+    }
 }

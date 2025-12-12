@@ -1,5 +1,5 @@
 [versions]
-agp = "8.11.2"
+agp = "8.13.2"
 googleHiltAndroid = "2.57.2"
 hiltCompiler = "2.57.2"
 hiltCompilerVersion = "2.57.2"

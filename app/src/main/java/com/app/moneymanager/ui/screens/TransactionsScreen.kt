@@ -1,14 +1,21 @@
 package com.app.moneymanager.ui.screens
 
+import android.graphics.Paint
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+
 
 @Composable
 fun TransactionScreen(
@@ -30,4 +37,9 @@ fun TransactionScreen(
             )
         }
     }
+    FloatingActionButton(
+        onClick = {onNavigateToEdit(0L)},
+        modifier = Modifier
+            .padding(end = 16.dp, bottom = 16.dp)
+    ) { }
 }

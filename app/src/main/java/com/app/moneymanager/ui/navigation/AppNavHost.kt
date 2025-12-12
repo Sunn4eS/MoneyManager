@@ -2,16 +2,33 @@ package com.app.moneymanager.ui.navigation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import com.app.moneymanager.ui.screens.TransactionScreen
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 
+
+sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
+    object Transactions: BottomNavItem(ScreenRoutes.TRANSACTION, Icons.Default.Home, "Транзакции")
+    object Categories: BottomNavItem(ScreenRoutes.CATEGORIES, Icons.Default.Refresh, "Категории")
+    object Analysis: BottomNavItem(ScreenRoutes.ANALYSIS, Icons.Default.AddCircle, "Аналитика")
+}
 @Composable
 fun AppNavHost(
     navController: NavHostController,
@@ -19,28 +36,40 @@ fun AppNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = ScreenRoutes.TRANSACTION,
+        startDestination = BottomNavItem.Transactions.route,
         modifier = modifier
     ) {
-        composable(ScreenRoutes.TRANSACTION) {
+        composable(BottomNavItem.Transactions.route) {
             TransactionScreen(
                 onNavigateToEdit = {transactionId ->
                     navController.navigate("add_edit_transaction/$transactionId")
                 }
             )
         }
-        composable(ScreenRoutes.ADD_EDIT_TRANSACTION) { backStackEntry ->
+        composable(BottomNavItem.Categories.route) { backStackEntry ->
             // TODO: Создать AddEditTransactionScreen
             TextPlaceholder(
                 title = "Добавление/Редактирование",
                 description = "ID: ${backStackEntry.arguments?.getString("transactionId") ?: "Новая"}"
             )
         }
-        composable(ScreenRoutes.ANALYSIS) {
+        composable(BottomNavItem.Analysis.route) {
             // TODO: Создать AnalysisScreen
             TextPlaceholder(
                 title = "Аналитика",
                 description = "Экран графиков и отчетов"
+            )
+        }
+
+        composable(ScreenRoutes.ADD_EDIT_TRANSACTION) {
+            backStackEntry ->
+            val transactionId = backStackEntry.arguments?.getString("transactionId")?.toLongOrNull()?:0L
+            TextPlaceholder(
+                title = if (transactionId == 0L)
+                    "Добавить"
+                else
+                    "Редактировать",
+                description = "Транзакция ID"
             )
         }
     }
@@ -57,4 +86,51 @@ private fun TextPlaceholder(title: String, description: String) {
             style = MaterialTheme.typography.headlineMedium
         )
     }
+}
+
+@Composable
+fun BottomNavigationBar(navController: NavHostController) {
+    val items = listOf(
+        BottomNavItem.Transactions,
+        BottomNavItem.Categories,
+        BottomNavItem.Analysis
+    )
+
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    val isBottomBarVisible = items.any { it.route == currentRoute }
+    if (isBottomBarVisible) {
+        NavigationBar(
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            items.forEach {
+                item ->
+                val isSelected = currentRoute == item.route
+                NavigationBarItem(
+                    icon = {
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = item.label)},
+                    label = {
+                        Text(
+                            item.label
+                        )
+                    },
+                    selected = isSelected,
+                    onClick = {
+                        if (currentRoute != item.route) {
+                            navController.navigate(item.route) {
+                                launchSingleTop = true
+                                popUpTo(navController.graph.startDestinationId) {
+                                    saveState = true
+                                }
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+
 }
