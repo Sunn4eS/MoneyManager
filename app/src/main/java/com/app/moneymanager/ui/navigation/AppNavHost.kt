@@ -18,10 +18,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import com.app.moneymanager.ui.screens.TransactionScreen
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
+import com.app.moneymanager.ui.screens.AddEditTransactionScreen
 
 
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
@@ -46,14 +49,20 @@ fun AppNavHost(
                 }
             )
         }
-        composable(BottomNavItem.Categories.route) { backStackEntry ->
-            // TODO: Создать AddEditTransactionScreen
-            TextPlaceholder(
-                title = "Добавление/Редактирование",
-                description = "ID: ${backStackEntry.arguments?.getString("transactionId") ?: "Новая"}"
+        composable(
+            route = ScreenRoutes.ADD_EDIT_TRANSACTION,
+            arguments = listOf(navArgument("transactionId") { type = NavType.LongType })
+        ) {
+            AddEditTransactionScreen(
+                onBack = { navController.popBackStack() }, // Вернуться на предыдущий экран
+                onSaveSuccess = {
+                    // Успешное сохранение: вернуться на главный экран
+                    navController.popBackStack()
+                }
             )
         }
-        composable(BottomNavItem.Analysis.route) {
+
+        composable(BottomNavItem.Categories.route) {
             // TODO: Создать AnalysisScreen
             TextPlaceholder(
                 title = "Аналитика",
@@ -61,15 +70,11 @@ fun AppNavHost(
             )
         }
 
-        composable(ScreenRoutes.ADD_EDIT_TRANSACTION) {
-            backStackEntry ->
-            val transactionId = backStackEntry.arguments?.getString("transactionId")?.toLongOrNull()?:0L
+        composable(BottomNavItem.Analysis.route) {
+            // TODO: Создать AnalysisScreen
             TextPlaceholder(
-                title = if (transactionId == 0L)
-                    "Добавить"
-                else
-                    "Редактировать",
-                description = "Транзакция ID"
+                title = "Аналитика",
+                description = "Экран графиков и отчетов"
             )
         }
     }

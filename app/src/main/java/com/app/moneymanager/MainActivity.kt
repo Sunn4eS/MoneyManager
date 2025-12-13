@@ -37,12 +37,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-@Composable
-fun MoneyManagerApp() {
-    val navController = rememberNavController()
-    AppNavHost(navController = navController)
-}
 @Composable
 fun MainScreen(){
     val navController = rememberNavController()

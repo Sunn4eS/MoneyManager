@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import com.app.moneymanager.data.local.mapper.toDomain
 import com.app.moneymanager.data.local.mapper.toEntity
+import com.app.moneymanager.data.local.model.TransactionWithCategory
 import com.app.moneymanager.domain.model.Category
 import com.app.moneymanager.domain.repository.CategoryRepository
 
@@ -16,19 +17,24 @@ class TransactionRepositoryImpl @Inject constructor(
 ) : TransactionRepository {
 
     override fun getAllTransactions(): Flow<List<Transaction>> {
-        // Получаем поток связанных данных из DAO и преобразуем его в доменные модели
         return dao.getTransactionsWithCategories().map { list ->
             list.map { it.toDomain() }
         }
     }
 
     override suspend fun saveTransaction(transaction: Transaction) {
-        // Преобразуем доменную модель в Room Entity перед сохранением
         dao.insertTransaction(transaction.toEntity())
     }
 
     override suspend fun deleteTransaction(transactionId: Long) {
         dao.deleteTransaction(transactionId)
+    }
+
+    override suspend fun updateTransaction(transaction: Transaction) {
+        dao.insertTransaction(transaction.toEntity())
+    }
+    override fun getTransactionWithCategoryById(transactionId: Long): Flow<Transaction> {
+        return dao.getTransactionWithCategoryById(transactionId).map { it.toDomain() }
     }
 }
 
