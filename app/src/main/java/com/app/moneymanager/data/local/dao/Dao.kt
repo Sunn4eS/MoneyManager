@@ -23,7 +23,7 @@ interface TransactionDao {
     suspend fun insertCategory(category: CategoryEntity)
 
     @Query("SELECT * FROM categories WHERE id = :categoryId")
-    suspend fun getCategoryById(categoryId: Long): CategoryEntity?
+    fun getCategoryById(categoryId: Long): Flow<CategoryEntity?>
 
     @Query("SELECT * FROM transactions WHERE id = :transactionId")
     fun getTransactionWithCategoryById(transactionId: Long): Flow<TransactionWithCategory>

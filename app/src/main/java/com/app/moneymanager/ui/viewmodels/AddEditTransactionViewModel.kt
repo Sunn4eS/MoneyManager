@@ -8,6 +8,7 @@ import com.app.moneymanager.domain.model.Transaction
 import com.app.moneymanager.domain.model.TransactionType
 import com.app.moneymanager.domain.usecase.AddTransactionUseCase
 import com.app.moneymanager.domain.usecase.DeleteTransactionUseCase
+import com.app.moneymanager.domain.usecase.GetAllCategoriesUseCase
 import com.app.moneymanager.domain.usecase.GetTransactionByUseCase
 import com.app.moneymanager.domain.usecase.UpdateTransactionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,6 +29,7 @@ class AddEditTransactionViewModel @Inject constructor(
     private val updateTransactionUseCase: UpdateTransactionUseCase,
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val getTransactionByUseCase: GetTransactionByUseCase,
+    private val getAllCategoriesUseCase: GetAllCategoriesUseCase
 
     //TODO use case для получения списка категорий
 ) : ViewModel() {
@@ -40,12 +42,28 @@ class AddEditTransactionViewModel @Inject constructor(
     val saveSuccess: StateFlow<Boolean> = _saveSuccess
 
     init {
+        loadCategories()
         if (transactionId != 0L) {
             loadTransaction(transactionId)
         }
-        //TODO загрузить список категорий
-    }
 
+    }
+    private fun loadCategories() {
+        viewModelScope.launch {
+            getAllCategoriesUseCase().collect { categories ->
+                _uiState.update {
+                    it.copy(
+                        categoryList = categories,
+                        selectedCategoryId =
+                            if (it.selectedCategoryId == 0L && categories.isNotEmpty())
+                                categories.first().id
+                            else
+                                it.selectedCategoryId
+                    )
+                }
+            }
+        }
+    }
     private fun loadTransaction(id: Long) {
         viewModelScope.launch {
             try {

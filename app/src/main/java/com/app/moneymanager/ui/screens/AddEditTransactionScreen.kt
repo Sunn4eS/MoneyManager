@@ -174,11 +174,7 @@ fun AddEditTransactionScreen(
             // 5. Выбор Категории (Placeholder)
             CategoryDropdown(
                 selectedCategoryId = state.selectedCategoryId,
-                categoryList = listOf(
-                    Category(1, "Прочее", true, "f"),
-                    Category(2, "Еда",true, "f"),
-                    Category(3, "Зарплата",true, "f")
-                ), //TODO Временные данные для демонстрации
+                categoryList = state.categoryList,
                 onCategorySelected = viewModel::onCategorySelect
             )
         }

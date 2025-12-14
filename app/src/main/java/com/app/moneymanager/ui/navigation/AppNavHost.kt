@@ -24,7 +24,9 @@ import com.app.moneymanager.ui.screens.TransactionScreen
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
+import com.app.moneymanager.ui.screens.AddEditCategoryScreen
 import com.app.moneymanager.ui.screens.AddEditTransactionScreen
+import com.app.moneymanager.ui.screens.CategoriesScreen
 
 
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
@@ -64,9 +66,27 @@ fun AppNavHost(
 
         composable(BottomNavItem.Categories.route) {
             // TODO: Создать CategoryScreen
-            TextPlaceholder(
-                title = "Аналитика",
-                description = "Экран графиков и отчетов"
+            CategoriesScreen(
+                onNavigateToAddEdit = { categoryId ->
+                    navController.navigate(
+                        ScreenRoutes.ADD_EDIT_CATEGORY.replace(
+                            "{categoryId}",
+                            categoryId.toString()
+                        )
+                    )
+                }
+            )
+        }
+
+        composable(
+            route = ScreenRoutes.ADD_EDIT_CATEGORY,
+            arguments = listOf(navArgument("categoryId") {type = NavType.LongType })
+        ) {
+            AddEditCategoryScreen(
+                onBack = { navController.popBackStack()},
+                onActionSuccess = {
+                    navController.popBackStack()
+                }
             )
         }
 
