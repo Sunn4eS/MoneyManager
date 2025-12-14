@@ -1,6 +1,5 @@
 package com.app.moneymanager.domain.usecase
 
-import com.app.moneymanager.data.local.model.TransactionWithCategory
 import com.app.moneymanager.domain.model.Transaction
 import com.app.moneymanager.domain.model.TransactionType
 import com.app.moneymanager.domain.repository.TransactionRepository
@@ -70,3 +69,4 @@ class DeleteTransactionUseCase @Inject constructor(
         repository.deleteTransaction(transactionId)
     }
 }
+

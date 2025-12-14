@@ -1,6 +1,5 @@
 package com.app.moneymanager.domain.repository
 
-import com.app.moneymanager.data.local.model.TransactionWithCategory
 import com.app.moneymanager.domain.model.Category
 import com.app.moneymanager.domain.model.Transaction
 import kotlinx.coroutines.flow.Flow

@@ -1,9 +1,8 @@
-package com.app.moneymanager.ui.screens
+package com.app.moneymanager.ui.viewmodels
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.app.moneymanager.domain.model.Category
 import com.app.moneymanager.domain.model.Transaction
 import com.app.moneymanager.domain.model.TransactionType

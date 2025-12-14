@@ -11,6 +11,8 @@ import com.app.moneymanager.data.local.mapper.toEntity
 import com.app.moneymanager.data.local.model.TransactionWithCategory
 import com.app.moneymanager.domain.model.Category
 import com.app.moneymanager.domain.repository.CategoryRepository
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flow
 
 class TransactionRepositoryImpl @Inject constructor(
     private val dao: TransactionDao
@@ -41,10 +43,24 @@ class TransactionRepositoryImpl @Inject constructor(
 class CategoryRepositoryImpl @Inject constructor(
     private val dao: TransactionDao
 ): CategoryRepository {
+
+    private val initialCategories = listOf(
+        Category(id = 1L, name = "Прочее", true, "ff"),
+        Category(id = 2L, name = "Еда", true, "ff"),
+        Category(id = 3L, name = "Зарплата", false, "ff"),
+        Category(id = 4L, name = "Транспорт", true, "ff"),
+        Category(id = 5L, name = "Развлечения", true, "ff")
+    )
+
     override fun getAllCategories(): Flow<List<Category>>
     {
-        return dao.getAllCategories().map { list ->
-            list.map { it.toDomain() }
+
+//        return dao.getAllCategories().map { list ->
+//            list.map { it.toDomain() }
+//        }
+        return flow {
+            delay(300)
+            emit(initialCategories)
         }
     }
     override suspend fun getCategoryById(categoryId: Long) : Category?
@@ -53,10 +69,10 @@ class CategoryRepositoryImpl @Inject constructor(
     }
     override suspend fun saveCategory(category: Category)
     {
-        TODO()
+        dao.insertCategory(category.toEntity())
     }
     override suspend fun deleteCategory(categoryId: Long)
     {
-        TODO()
+        dao.deleteCategory(categoryId)
     }
 }

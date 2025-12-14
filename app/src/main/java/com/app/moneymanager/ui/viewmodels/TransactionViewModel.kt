@@ -1,4 +1,4 @@
-package com.app.moneymanager.ui.screens
+package com.app.moneymanager.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

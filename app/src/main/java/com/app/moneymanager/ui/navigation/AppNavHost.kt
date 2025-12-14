@@ -63,7 +63,7 @@ fun AppNavHost(
         }
 
         composable(BottomNavItem.Categories.route) {
-            // TODO: Создать AnalysisScreen
+            // TODO: Создать CategoryScreen
             TextPlaceholder(
                 title = "Аналитика",
                 description = "Экран графиков и отчетов"
