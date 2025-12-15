@@ -71,7 +71,7 @@ fun CategoriesScreen(
                     .padding(paddingValues),
                 contentAlignment = Alignment.Center
             ) {
-               // CircularProgressIndicator()
+               CircularProgressIndicator()
             }
         }
         else if (state.categories.isEmpty()) {
