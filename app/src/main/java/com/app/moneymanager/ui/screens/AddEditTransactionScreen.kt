@@ -21,6 +21,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -35,7 +37,9 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -209,12 +213,10 @@ fun AddEditTransactionScreen(
                 )
             }
 
-            // 4. Выбор Даты (Placeholder)
             DateField(
                 selectedDate = state.selectedDate.format(DateTimeFormatter.ofPattern("dd MMMM yyyy",
                     Locale("ru")
                 )),
-                // TODOСейчас просто выбираем текущую дату, пока нет DatePicker
                 onDateSelected = viewModel::onDateSelect
             )
 
@@ -260,12 +262,14 @@ fun TransactionTypeButton(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateField(
     selectedDate: String,
     onDateSelected: (java.time.LocalDate) -> Unit
 ) {
     var isDatePickerVisible by remember { mutableStateOf(false) }
+    val dateFormatter = java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
     OutlinedTextField(
         value = selectedDate,
@@ -282,21 +286,34 @@ fun DateField(
         modifier = Modifier.fillMaxWidth()
     )
 
-    //TODO Временная реализация DatePicker Placeholder
     if (isDatePickerVisible) {
-        AlertDialog(
+        val datePickerState = rememberDatePickerState()
+
+        DatePickerDialog(
             onDismissRequest = { isDatePickerVisible = false },
-            title = { Text("Выбор даты (Заглушка)") },
-            text = { Text("Здесь будет Material3 DatePicker. Текущая дата: $selectedDate") },
             confirmButton = {
-                Button(onClick = {
-                    // Просто закрываем диалог
-                    isDatePickerVisible = false
-                }) {
+                Button(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val localDate = java.time.Instant.ofEpochMilli(millis)
+                                .atZone(java.time.ZoneId.systemDefault())
+                                .toLocalDate()
+                            onDateSelected(localDate)
+                        }
+                        isDatePickerVisible = false
+                    }
+                ) {
                     Text("OK")
                 }
+            },
+            dismissButton = {
+                TextButton(onClick = { isDatePickerVisible = false }) {
+                    Text("Отмена")
+                }
             }
-        )
+        ) {
+            DatePicker(state = datePickerState)
+        }
     }
 }
 
