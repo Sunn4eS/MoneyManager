@@ -57,7 +57,7 @@ fun AppNavHost(
         ) {
             AddEditTransactionScreen(
                 onBack = { navController.popBackStack() }, // Вернуться на предыдущий экран
-                onSaveSuccess = {
+                onActionSuccess = {
                     // Успешное сохранение: вернуться на главный экран
                     navController.popBackStack()
                 }

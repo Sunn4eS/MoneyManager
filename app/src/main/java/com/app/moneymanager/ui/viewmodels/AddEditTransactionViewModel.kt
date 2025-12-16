@@ -41,6 +41,9 @@ class AddEditTransactionViewModel @Inject constructor(
     private val _saveSuccess = MutableStateFlow(false)
     val saveSuccess: StateFlow<Boolean> = _saveSuccess
 
+    private val _actionSuccess = MutableStateFlow<TransactionAction?>(null)
+    val actionSuccess: StateFlow<TransactionAction?> = _actionSuccess
+
     init {
         loadCategories()
         if (transactionId != 0L) {
@@ -111,6 +114,9 @@ class AddEditTransactionViewModel @Inject constructor(
         _uiState.update { it.copy(selectedCategoryId = categoryId) }
     }
 
+    fun resetError() {
+        _uiState.update { it.copy(error = null) }
+    }
     fun saveTransaction() {
         val amount = _uiState.value.amountInput.toDoubleOrNull()
         if (amount == null || amount <= 0) {
@@ -132,18 +138,31 @@ class AddEditTransactionViewModel @Inject constructor(
         )
         viewModelScope.launch {
             try {
-                if (transactionId == 0L) {
-                    addTransactionUseCase(transactionToSave)
+                addTransactionUseCase(transactionToSave)
+                _actionSuccess.value =  if (transactionId == 0L) {
+                    TransactionAction.ADDED
                 } else {
-                    updateTransactionUseCase(transactionToSave)
+                    TransactionAction.UPDATED
                 }
-                _saveSuccess.value = true // Успешное сохранение, триггер навигации
+
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = "Ошибка сохранения: ${e.localizedMessage}") }
             }
         }
     }
 
+    fun deleteTransaction() {
+        if (transactionId == 0L) return
+
+        viewModelScope.launch {
+            try {
+                deleteTransactionUseCase(transactionId)
+                _actionSuccess.value = TransactionAction.DELETED
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = "Ошибка удаления: ${e.localizedMessage}") }
+            }
+        }
+    }
     private fun Date.toLocalDate(): LocalDate = this.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
     private fun LocalDate.toDate(): Date = Date.from(this.atStartOfDay(ZoneId.systemDefault()).toInstant())
 }
@@ -159,3 +178,7 @@ data class AddEditUiState(
     val amountError: Boolean = false,
     val error: String? = null
 )
+
+enum class TransactionAction {
+    ADDED, UPDATED, DELETED
+}

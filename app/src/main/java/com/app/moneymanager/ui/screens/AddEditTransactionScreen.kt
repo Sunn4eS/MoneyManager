@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -62,23 +63,24 @@ import java.util.Locale
 fun AddEditTransactionScreen(
     viewModel: AddEditTransactionViewModel = hiltViewModel(),
     onBack: () -> Unit,
-    onSaveSuccess: () -> Unit,
+    onActionSuccess: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsState()
-    val saveSuccess by viewModel.saveSuccess.collectAsState()
+    val actionSuccess by viewModel.actionSuccess.collectAsState()
 
     val focusManager = LocalFocusManager.current
+    val snackbarHostState = remember { SnackbarHostState() }
+
 
     // Наблюдение за успешным сохранением для навигации
-    LaunchedEffect(saveSuccess) {
-        if (saveSuccess) {
+    LaunchedEffect(actionSuccess) {
+        if (actionSuccess != null) {
             // Очищаем фокус, чтобы закрыть клавиатуру и убрать остаточные элементы UI, такие как курсор
             focusManager.clearFocus()
-            onSaveSuccess()
+            onActionSuccess()
         }
     }
 
-    val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(state.error) {
         state.error?.let {
             snackbarHostState.showSnackbar(
@@ -86,9 +88,12 @@ fun AddEditTransactionScreen(
                 actionLabel = "OK",
                 duration = SnackbarDuration.Short
             )
-            //TODO В реальной реализации здесь должна быть очистка ошибки в ViewModel
+            viewModel.resetError()
         }
     }
+
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -103,6 +108,11 @@ fun AddEditTransactionScreen(
                     }
                 },
                 actions = {
+                    if (state.isEditing) {
+                        IconButton(onClick = {showDeleteDialog = true}) {
+                            Icon(Icons.Default.Delete, contentDescription = "Удалить", tint = MaterialTheme.colorScheme.error)
+                        }
+                    }
                     IconButton(onClick = viewModel::saveTransaction) {
                         Icon(
                             imageVector = Icons.Filled.Check, contentDescription = "Сохранить")
@@ -168,6 +178,36 @@ fun AddEditTransactionScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+
+            if (showDeleteDialog) {
+                AlertDialog(
+                    onDismissRequest = {showDeleteDialog = false},
+                    title = {
+                        Text("Удалить транзакцию?")
+                    },
+                    text = {
+                        Text("Вы уверены, что хотите удалить эту транзакцию?")
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                viewModel.deleteTransaction()
+                                showDeleteDialog = false
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                        ) {
+                            Text("Удалить")
+                        }
+                    },
+                    dismissButton = {
+                        OutlinedButton(
+                            onClick = {showDeleteDialog = false}
+                        ) {
+                            Text("Отмена")
+                        }
+                    }
+                )
+            }
 
             // 4. Выбор Даты (Placeholder)
             DateField(
