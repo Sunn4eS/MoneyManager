@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -44,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -65,8 +67,13 @@ fun AddEditTransactionScreen(
     val state by viewModel.uiState.collectAsState()
     val saveSuccess by viewModel.saveSuccess.collectAsState()
 
+    val focusManager = LocalFocusManager.current
+
+    // Наблюдение за успешным сохранением для навигации
     LaunchedEffect(saveSuccess) {
         if (saveSuccess) {
+            // Очищаем фокус, чтобы закрыть клавиатуру и убрать остаточные элементы UI, такие как курсор
+            focusManager.clearFocus()
             onSaveSuccess()
         }
     }
@@ -110,7 +117,8 @@ fun AddEditTransactionScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .imePadding(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             OutlinedTextField(
@@ -130,6 +138,7 @@ fun AddEditTransactionScreen(
                     value = it,
                     onValueChange = viewModel::onDescriptionChange,
                     label = { Text("Описание") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -171,7 +180,6 @@ fun AddEditTransactionScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 5. Выбор Категории (Placeholder)
             CategoryDropdown(
                 selectedCategoryId = state.selectedCategoryId,
                 categoryList = state.categoryList,

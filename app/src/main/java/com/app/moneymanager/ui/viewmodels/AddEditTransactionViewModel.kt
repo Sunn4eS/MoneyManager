@@ -126,7 +126,9 @@ class AddEditTransactionViewModel @Inject constructor(
             description = _uiState.value.description?.trim(),
             date = _uiState.value.selectedDate.toDate(),
             type = _uiState.value.selectedType,
-            category = _uiState.value.categoryList[_uiState.value.selectedCategoryId.toInt()] // ID выбранной категории
+            category = _uiState.value.categoryList.first { it.id == _uiState.value.selectedCategoryId }
+
+// ID выбранной категории
         )
         viewModelScope.launch {
             try {
