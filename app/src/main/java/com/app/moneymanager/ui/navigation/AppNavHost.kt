@@ -26,6 +26,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.app.moneymanager.ui.screens.AddEditCategoryScreen
 import com.app.moneymanager.ui.screens.AddEditTransactionScreen
+import com.app.moneymanager.ui.screens.AnalysisScreen
 import com.app.moneymanager.ui.screens.CategoriesScreen
 
 
@@ -92,10 +93,7 @@ fun AppNavHost(
 
         composable(BottomNavItem.Analysis.route) {
             // TODO: Создать AnalysisScreen
-            TextPlaceholder(
-                title = "Аналитика",
-                description = "Экран графиков и отчетов"
-            )
+            AnalysisScreen()
         }
     }
 }
