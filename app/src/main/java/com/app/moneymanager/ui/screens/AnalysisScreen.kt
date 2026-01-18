@@ -1,6 +1,9 @@
 package com.app.moneymanager.ui.screens
 
 import android.R
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +15,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -38,8 +43,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.PaintingStyle.Companion.Stroke
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -49,11 +60,15 @@ import com.app.moneymanager.domain.model.TransactionType
 import com.app.moneymanager.ui.theme.ExpenseRed
 import com.app.moneymanager.ui.theme.IncomeGreen
 import com.app.moneymanager.ui.viewmodels.AnalysisPeriod
+import com.app.moneymanager.ui.viewmodels.AnalysisUiState
 import com.app.moneymanager.ui.viewmodels.AnalysisViewModel
+import com.app.moneymanager.ui.viewmodels.ChartSlice
+import java.text.NumberFormat
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,7 +106,33 @@ fun AnalysisScreen (
                 onNavigatePeriod = viewModel::navigatePeriod
             )
 
+            Spacer(Modifier.height(16.dp))
 
+            if (state.isLoading) {
+                CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
+            } else if (state.chartSlice.isEmpty() || state.totalAmount == 0.0) {
+                Box(
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "Нет данных для выбранного периода",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+
+                PieChartSection(state = state)
+
+                Spacer(Modifier.height(24.dp))
+
+                CategorySummaryList(
+                    chartData = state.chartSlice,
+                    totalAmount = state.totalAmount,
+                    selectedType = state.selectedType
+                )
+            }
 
         }
 
@@ -234,7 +275,7 @@ private fun PeriodControls(
         }
     }
 }
-    fun AnalysisPeriod.toWordLabel(): String = when (this) {
+fun AnalysisPeriod.toWordLabel(): String = when (this) {
         AnalysisPeriod.DAY -> "День"
         AnalysisPeriod.WEEK -> "Неделя"
         AnalysisPeriod.MONTH -> "Месяц"
@@ -242,26 +283,116 @@ private fun PeriodControls(
         AnalysisPeriod.CUSTOM -> "Свой"
     }
 
-    fun AnalysisPeriod.toDateRangeLabel(baseDate: LocalDate): String = when (this) {
-        AnalysisPeriod.DAY -> baseDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
-        AnalysisPeriod.WEEK -> {
-            val startOfWeek = baseDate.with(DayOfWeek.MONDAY)
-            val endOfWeek = baseDate.with(DayOfWeek.SUNDAY)
-            "${startOfWeek.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))} - ${endOfWeek.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}"
+@Composable
+private fun PieChartSection(state: AnalysisUiState) {
+    Box(
+        modifier = Modifier.size(240.dp).padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            var startAngle = -90f // Начинаем сверху
+            state.chartSlice.forEach { slice ->
+                val sweepAngle = (slice.percentage / 100f) * 360f
+                drawArc(
+                    color = slice.color,
+                    startAngle = startAngle,
+                    sweepAngle = sweepAngle,
+                    useCenter = false,
+                    style = Stroke(width = 35.dp.toPx(), cap = StrokeCap.Butt)
+                )
+                startAngle += sweepAngle
+            }
         }
-        AnalysisPeriod.MONTH -> {
-            val startOfMonth = baseDate.withDayOfMonth(1)
-            val endOfMonth = baseDate.withDayOfMonth(baseDate.lengthOfMonth())
-            "${startOfMonth.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))} - ${endOfMonth.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}"
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                if (state.selectedType == TransactionType.EXPENSE) "ТРАТЫ" else "ДОХОДЫ",
+                style = MaterialTheme.typography.labelMedium
+            )
+            Text(
+                formatCurrency(state.totalAmount),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
         }
-        AnalysisPeriod.YEAR -> {
-            val startOfYear = baseDate.withDayOfYear(1)
-            val endOfYear = baseDate.withDayOfYear(baseDate.lengthOfYear())
-            "${startOfYear.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))} - ${endOfYear.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}"
+    }
+}
+
+private fun formatCurrency(amount: Double): String {
+    val formatter = NumberFormat.getCurrencyInstance(Locale("ru")).apply {
+        currency = java.util.Currency.getInstance("RUB")
+        minimumFractionDigits = 0
+        maximumFractionDigits = 2
+    }
+    return formatter.format(amount)
+}
+
+@Composable
+private fun CategorySummaryList(chartData: List<ChartSlice>, totalAmount: Double, selectedType: TransactionType) {
+    LazyColumn(
+        modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+        contentPadding = PaddingValues(vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        item {
+            Text(
+                if (selectedType == TransactionType.EXPENSE) "Траты по категориям" else "Доходы по категориям",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Divider()
         }
-        AnalysisPeriod.CUSTOM -> "Свой период"
+        items(chartData, key = { it.category.id }) { slice ->
+            CategorySummaryItem(slice = slice)
+        }
+    }
+}
+
+/**
+ * Отдельный элемент списка.
+ */
+@Composable
+private fun CategorySummaryItem(slice: ChartSlice) {
+    val numberFormat = NumberFormat.getPercentInstance(Locale("ru")).apply {
+        minimumFractionDigits = 1
+        maximumFractionDigits = 1
     }
 
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        // Индикатор цвета и название категории
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+            Spacer(
+                modifier = Modifier
+                    .size(10.dp)
+                    .background(slice.color, RoundedCornerShape(2.dp))
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = slice.category.name,
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+
+        // Сумма и процент
+        Column(horizontalAlignment = Alignment.End) {
+            Text(
+                text = formatCurrency(slice.amount),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = numberFormat.format(slice.percentage / 100f),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
 
 @Preview
 @Composable

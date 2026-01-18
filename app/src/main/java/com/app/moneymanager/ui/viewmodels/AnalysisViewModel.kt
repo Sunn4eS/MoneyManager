@@ -1,5 +1,6 @@
 package com.app.moneymanager.ui.viewmodels
 
+import android.R
 import androidx.compose.runtime.State
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
@@ -44,68 +45,49 @@ class AnalysisViewModel @Inject constructor(
         8L to Color(0xFF90A4AE), // Grey
     )
 
+    init {
+        loadData()
+    }
+
     private fun loadData() {
         viewModelScope.launch {
             combine(
+                getAllTransactionByUseCase(),
                 getAllCategoriesUseCase(),
-                getAllTransactionByUseCase()
-            ) { transactions, categories ->
-                val categoryMap = categories.associateBy {it.id}
-
-//                calculateCharData(
-//                    allTransactions =
-//                )
-            }.collect {  }
+                _uiState
+            ) { transactions, categories, currentState ->
+                val categoryMap = categories.associateBy { it.id }
+                calculateChartData(transactions, categoryMap, currentState)
+            }.collect { updatedSlices ->
+                _uiState.update { it.copy(chartSlice = updatedSlices.first, totalAmount = updatedSlices.second, isLoading = false) }
+            }
+            setPeriod(AnalysisPeriod.MONTH)
         }
     }
+
+
 
     private fun calculateChartData(
         allTransactions: List<Transaction>,
         categoryMap: Map<Long, Category>,
         currentState: AnalysisUiState
-    ) {
-        val filteredTransactions = allTransactions.filter { transaction ->
-            val transactionDate = transaction.date.toLocalDate()
-            val isCorrectType = transaction.type == currentState.selectedType
-            val isWithinPeriod = (transactionDate.isEqual((currentState.startDate)) || transactionDate.isAfter(currentState.startDate) &&
-                    transactionDate.isEqual(currentState.endDate) || transactionDate.isBefore(currentState.endDate))
-            isCorrectType && isWithinPeriod
+    ): Pair<List<ChartSlice>, Double> {
+        val filtered = allTransactions.filter { t ->
+            val d = t.date.toLocalDate()
+            t.type == currentState.selectedType && !d.isBefore(currentState.startDate) && !d.isAfter(currentState.endDate)
         }
-        val groupedAmounts = filteredTransactions
-            .groupBy { it.category.id }
-            .mapValues { (_, transactions) -> transactions.sumOf { it.amount } }
 
-        val totalAmount = groupedAmounts.values.sum()
+        val grouped = filtered.groupBy { it.category.id }.mapValues { it.value.sumOf { trans -> trans.amount } }
+        val total = grouped.values.sum()
 
-        val chartSlices = groupedAmounts.map { (categoryId, amount) ->
-            val category = categoryMap[categoryId] ?: Category(id = categoryId, name = "", isExpense = true, colorHex = "ff")
-            val percentage =
-                if (totalAmount > 0)
-                    ((amount/totalAmount) * 100).toFloat()
-                else
-                    0F
-
-            val colorIndex = (categoryId.toLong() % categoryColorMap.size.toLong()).let {
-                if (it == 0L) categoryColorMap.size.toLong() else it
-            }
-
-            val color = categoryColorMap[colorIndex] ?: Color.LightGray
-
-            ChartSlice(
-                category = category,
-                amount = amount,
-                percentage = percentage,
-                color = color
-            )
+        val slices = grouped.map { (catId, amount) ->
+            val cat = categoryMap[catId] ?: Category(id = catId, name = "Прочее", isExpense = true, colorHex = "")
+            val percent = if (total > 0) (amount / total).toFloat() else 0f
+            val colorIdx = (catId % 8).let { if (it == 0L) 8L else it }
+            ChartSlice(cat, amount, percent * 100f, categoryColorMap[colorIdx] ?: Color.Gray)
         }.sortedByDescending { it.amount }
 
-        _uiState.update {
-            it.copy(
-                chartSlice = chartSlices,
-                totalAmount = totalAmount,
-                isLoading = false
-            )
-        }
+        return Pair(slices, total)
     }
 
     fun setTransactionType(type: TransactionType) {
